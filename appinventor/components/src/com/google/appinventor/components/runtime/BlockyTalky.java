@@ -45,10 +45,10 @@ import java.util.Date;
 
 import org.apache.http.conn.util.InetAddressUtils;
 
-// import org.java_websocket.client.WebSocketClient;
-// import org.java_websocket.drafts.Draft;
-// import org.java_websocket.drafts.Draft_10;
-// import org.java_websocket.handshake.ServerHandshake;
+import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.drafts.Draft;
+import org.java_websocket.drafts.Draft_10;
+import org.java_websocket.handshake.ServerHandshake;
 import org.json.JSONObject;
 import org.json.JSONException;
 
@@ -70,6 +70,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.List;
 import com.google.appinventor.components.runtime.collect.Lists;
 import com.google.appinventor.components.runtime.RandomNameGenerator;
+import com.google.appinventor.components.runtime.AnnouncementBroadcaster;
 @DesignerComponent(version = 2,
    description = "This is version 2 of BlockyTalky.",
    category = ComponentCategory.EXTENSION,
@@ -80,6 +81,7 @@ import com.google.appinventor.components.runtime.RandomNameGenerator;
                                     "android.permission.CHANGE_WIFI_MULTICAST_STATE, " +
                                     "android.permission.ACCESS_NETWORK_STATE, " +
                                     "android.permission.ACCESS_WIFI_STATE")
+@UsesLibraries(libraries = "java_websocket.jar")
 public class BlockyTalky extends AndroidNonvisibleComponent
     implements  Component {
     private static String LOG_TAG = "BLOCKYTALKY";
@@ -95,7 +97,7 @@ public class BlockyTalky extends AndroidNonvisibleComponent
   into the resultReturned() callback method. */
 
 
-  sendMessage()
+  // sendMessage();
   private int requestCode;
   public BlockyTalky(ComponentContainer container) 
   {
@@ -129,7 +131,7 @@ public class BlockyTalky extends AndroidNonvisibleComponent
         }
         else{
         	//what do I do now?
-        	return null
+        	return null;
         }
 
     }
@@ -146,8 +148,4 @@ public class BlockyTalky extends AndroidNonvisibleComponent
         }
    return nearbyBTs;
   }
-}
-public class AnnnouncementBroadcaster
-{
-  
 }
