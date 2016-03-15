@@ -74,7 +74,7 @@ import com.google.appinventor.components.runtime.collect.Lists;
 import com.google.appinventor.components.runtime.RandomNameGenerator;
 import com.google.appinventor.components.runtime.AnnouncementBroadcaster;
 
-@DesignerComponent(version = 2,
+@DesignerComponent(version = 1,
    description = "This is version 2 of BlockyTalky.",
    category = ComponentCategory.EXTENSION,
    nonVisible = true,
@@ -128,10 +128,12 @@ public class BlockyTalky extends AndroidNonvisibleComponent implements  Componen
 	    //check network connectivity
 	    if(nearbyBlockyTalkies().contains(destination)){
 	    	//send message
-
+	    	client.send(message.toJson());
 	    }
 	    else{
-	    	//what do I do now?
+	    	//reopen client
+	    	connectToMessagingRouter();
+                client.send(btMessage.toJson()); //@fixme: message will likely be dropped on the floor, since registration will not be complete when this statement executes.
 	    }
 
 	}
