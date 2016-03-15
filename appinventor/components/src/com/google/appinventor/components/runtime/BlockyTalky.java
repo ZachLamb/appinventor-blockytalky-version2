@@ -13,6 +13,7 @@ import com.google.appinventor.components.annotations.SimpleEvent;
 import com.google.appinventor.components.annotations.SimpleFunction;
 import com.google.appinventor.components.annotations.SimpleObject;
 import com.google.appinventor.components.annotations.SimpleProperty;
+import com.google.appinventor.components.annotations.UsesLibraries;
 import com.google.appinventor.components.annotations.UsesPermissions;
 import com.google.appinventor.components.common.ComponentCategory;
 import com.google.appinventor.components.common.PropertyTypeConstants;
@@ -79,74 +80,72 @@ import com.google.appinventor.components.runtime.AnnouncementBroadcaster;
    nonVisible = true,
    iconName = "images/extension.png")
 @SimpleObject(external = true)
-// @UsesLibraries(libraries = "java_websocket.jar")
+@UsesLibraries(libraries = "java_websocket.jar")
 @UsesPermissions(permissionNames = "android.permission.INTERNET, " +
                                     "android.permission.CHANGE_WIFI_MULTICAST_STATE, " +
                                     "android.permission.ACCESS_NETWORK_STATE, " +
                                     "android.permission.ACCESS_WIFI_STATE")
-
-public class BlockyTalky extends AndroidNonvisibleComponent
-  implements  Component {
-  private static String LOG_TAG = "BLOCKYTALKY";
-  private final ComponentContainer container;
-  private String nodeName = "null";
+public class BlockyTalky extends AndroidNonvisibleComponent implements  Component {
+	private static String LOG_TAG = "BLOCKYTALKY";
+	private final ComponentContainer container;
+	private String nodeName = "null";
 	private int itemTextColor;
 	private int itemBackgroundColor;
 	public final static int DEFAULT_ITEM_TEXT_COLOR = Component.COLOR_GREEN;
 	public final static int DEFAULT_ITEM_BACKGROUND_COLOR = Component.COLOR_BLACK;
 
-  /* Used to identify the call to startActivityForResult. Will be passed back
-  into the resultReturned() callback method. */
+	/* Used to identify the call to startActivityForResult. Will be passed back
+	into the resultReturned() callback method. */
 
 
-  // sendMessage();
-  private int requestCode;
-  public BlockyTalky(ComponentContainer container) 
-  {
-    super(container.$form());
-    this.container = container;
-  }
-  	// property 
-    @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_STRING,
-            defaultValue = "")
-    @SimpleProperty(description = "Name of message sender")
-    public void NodeName(String name) 
-    {
-      if(name == "null")
-      {
-        RandomNameGenerator random = new RandomNameGenerator();
-        name = random.GenerateRandomName();
-      }
-      else
-      {
-      	Log.i("BlockyTalky", "There's already a name");
-      }
-    }
-  @SimpleFunction(description = "Sends a message to a BlockyTalky")
-    public void SendMessage(String message, String destination) 
-    {
-        Log.i("BlockyTalky", "I'm sending a message to" + destination);
-        //check network connectivity
-        if(nearbyBlockyTalkies().contains(destination)){
-        	//send message
+	// sendMessage();
+	private int requestCode;
+	public BlockyTalky(ComponentContainer container) 
+	{
+	super(container.$form());
+	this.container = container;
+	}
+		// property 
+	@DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_STRING,
+	        defaultValue = "")
+	@SimpleProperty(description = "Name of message sender")
+	public void NodeName(String name) 
+	{
+	  if(name == "null")
+	  {
+	    RandomNameGenerator random = new RandomNameGenerator();
+	    name = random.GenerateRandomName();
+	  }
+	  else
+	  {
+	  	Log.i("BlockyTalky", "There's already a name");
+	  }
+	}
+	@SimpleFunction(description = "Sends a message to a BlockyTalky")
+	public void SendMessage(String message, String destination) 
+	{
+	    Log.i("BlockyTalky", "I'm sending a message to" + destination);
+	    //check network connectivity
+	    if(nearbyBlockyTalkies().contains(destination)){
+	    	//send message
 
-        }
-        else{
-        	//what do I do now?
-        }
+	    }
+	    else{
+	    	//what do I do now?
+	    }
 
-    }
+	}
 
-   // return nearby BlockyTalky's
-  // @SimpleProperty(description = "Will return BlockyTalkys nearby.")
-  @SimpleFunction
-  public List<String> nearbyBlockyTalkies() 
-  {
-    List<String> nearbyBTs = new ArrayList<String>();
-      nearbyBTs.add("Everything");
-    for(String key : nearbyBTs.keySet()){
-            nearbyBTs.add(key);
-        }
-   return nearbyBTs;
-  }
+	// return nearby BlockyTalky's
+	// @SimpleProperty(description = "Will return BlockyTalkys nearby.")
+	@SimpleFunction
+	public List<String> nearbyBlockyTalkies() 
+	{
+	List<String> nearbyBTs = new ArrayList<String>();
+	//   nearbyBTs.add("Everything");
+	// for(String key : nearbyBTs.keySet()){
+	//         nearbyBTs.add(key);
+	//     }
+	return nearbyBTs;
+	}
 }
