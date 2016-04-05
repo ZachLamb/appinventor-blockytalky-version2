@@ -89,65 +89,175 @@ public class BlockyTalky extends AndroidNonvisibleComponent implements  Componen
 	private static String LOG_TAG = "BLOCKYTALKY";
 	private final ComponentContainer container;
 	private String nodeName = "null";
+
 	private int itemTextColor;
 	private int itemBackgroundColor;
 	public final static int DEFAULT_ITEM_TEXT_COLOR = Component.COLOR_GREEN;
 	public final static int DEFAULT_ITEM_BACKGROUND_COLOR = Component.COLOR_BLACK;
-
+	private NewClient client = null;
 	/* Used to identify the call to startActivityForResult. Will be passed back
 	into the resultReturned() callback method. */
 
 
 	// sendMessage();
+	//blockyTalky Component
 	private int requestCode;
 	public BlockyTalky(ComponentContainer container) 
 	{
-	super(container.$form());
-	this.container = container;
+		super(container.$form());
+		this.container = container;
+			// property 
 	}
-		// property 
-	@DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_STRING,
-	        defaultValue = "")
-	@SimpleProperty(description = "Name of message sender")
-	public void NodeName(String name) 
-	{
-	  if(name == "null")
-	  {
-	    RandomNameGenerator random = new RandomNameGenerator();
-	    name = random.GenerateRandomName();
-	  }
-	  else
-	  {
-	  	Log.i("BlockyTalky", "There's already a name");
-	  }
-	}
-	@SimpleFunction(description = "Sends a message to a BlockyTalky")
-	public void SendMessage(String message, String destination) 
-	{
-	    Log.i("BlockyTalky", "I'm sending a message to" + destination);
-	    //check network connectivity
-	    if(nearbyBlockyTalkies().contains(destination)){
-	    	//send message
-	    	client.send(message.toJson());
-	    }
-	    else{
-	    	//reopen client
-	    	connectToMessagingRouter();
-                client.send(btMessage.toJson()); //@fixme: message will likely be dropped on the floor, since registration will not be complete when this statement executes.
-	    }
+		@DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_STRING,
+		        defaultValue = "")
+		@SimpleProperty(description = "Name of message sender")
+		public void NodeName(String name) 
+		{
+		  if(name == "null")
+		  {
+		    RandomNameGenerator random = new RandomNameGenerator();
+		    name = random.GenerateRandomName();
+		  }
+		  else
+		  {
+		  	Log.i("BlockyTalky", "There's already a name");
+		  }
+		}
+		@SimpleFunction(description = "Sends a message to a BlockyTalky")
+		public void SendMessage(String message, String destination) 
+		{	
+			BlockyTalkyMessage btMessage = new BlockyTalkyMessage(this.nodeName,destination,message);
+		    Log.i("BlockyTalky", "I'm sending a message to" + destination);
+		    //check network connectivity
+		    if(nearbyBlockyTalkies().contains(destination)){
+		    	//send message
+		    	client.send(btMessage.toJson());
+		    }
+		    else{
+		    	//reopen client
+		    	connectToMessagingRouter();
+	                client.send(btMessage.toJson()); //@fixme: message will likely be dropped on the floor, since registration will not be complete when this statement executes.
+		    }
 
-	}
+		}
 
-	// return nearby BlockyTalky's
-	// @SimpleProperty(description = "Will return BlockyTalkys nearby.")
-	@SimpleFunction
-	public List<String> nearbyBlockyTalkies() 
-	{
-	List<String> nearbyBTs = new ArrayList<String>();
-	//   nearbyBTs.add("Everything");
-	// for(String key : nearbyBTs.keySet()){
-	//         nearbyBTs.add(key);
-	//     }
-	return nearbyBTs;
-	}
+		// return nearby BlockyTalky's
+		// @SimpleProperty(description = "Will return BlockyTalkys nearby.")
+		@SimpleFunction
+		public List<String> nearbyBlockyTalkies() 
+		{
+			List<String> nearbyBTs = new ArrayList<String>();
+			//   nearbyBTs.add("Everything");
+			// for(String key : nearbyBTs.keySet()){
+			//         nearbyBTs.add(key);
+			//     }
+			return nearbyBTs;
+		}
+
+		public class BlockyTalkyMessage {
+	        private String source;
+	        private String destination;
+	        private String content;
+	        private String jsonFormatString =
+	                "{\"py/object\": \"__main__.Message\", \"channel\": \"Message\", \"content\": \"%s\", \"destination\": \"%s\", \"source\": \"%s\"}";
+
+	        public BlockyTalkyMessage(String source, String destination, String content) {
+	            this.source = source;
+	            this.destination = destination;
+	            this.content = content;
+	        }
+
+	        public BlockyTalkyMessage(String json) {
+	            JSONObject message;
+	            try {
+	                message = new JSONObject(json);
+	                this.source = message.getString("source");
+	                this.destination = message.getString("destination");
+	                this.content = message.getString("content");
+	            } catch (Exception e) {
+	                Log.d(LOG_TAG, "Exception while parsing json");
+	                e.printStackTrace();
+	            }
+	        }
+
+	        public String toJson() {
+	            return String.format(
+	                    this.jsonFormatString,
+	                    this.content,
+	                    this.destination,
+	                    this.source);
+	        }
+    	}
+
+		// Note from Web Socket Github README: Important events onOpen, onClose, onMessage and onIOError 
+		//get fired throughout the life of the WebSocketClient, and must be implemented in your subclass.
+		private class NewClient extends WebSocketClient {
+			private boolean isReadyForUse = false;
+			private String nodeName = null;
+
+			public NewClient(String nodeName, URI serverUri, Draft draft, HashMap<String, String > protocol, int timeout) 
+			{
+	          super(serverUri, draft, protocol, timeout);
+	          this.nodeName = nodeName;
+		    }
+		    public NewClient(String nodeName, URI serverUri, Draft draft) 
+		    {
+		      super(serverUri, draft);
+		      this.nodeName = nodeName;
+		    }
+		    public NewClient(String nodeName, URI serverURI) 
+		    {
+		      super(serverURI);
+		      this.nodeName = nodeName;
+		    }
+
+		    public boolean readyToCommunicate(){
+		        boolean ret = false;
+		        synchronized(this){
+		          ret = this.isReadyForUse;
+		        }
+		        return ret;
+		    }
+		    
+		    @Override 
+		    public void onOpen(ServerHandshake handshakedata){
+		    	Log.d(LOG_TAG, "BlockyTalky message router connection opened... attempting registration");
+		        BlockyTalkyMessage registerMessage = new BlockyTalkyMessage(this.nodeName, "dax", "");
+		        super.send(registerMessage.toJson());
+		        Log.d(LOG_TAG, "Registered with BlockyTalky message router as " + this.nodeName);
+		        synchronized(this){
+		          isReadyForUse = true;
+		        }		    
+	      	}
+		    @Override 
+		    public void onClose(int code, String reason, boolean remote){
+		    	Log.d(LOG_TAG, "closed with exit code " + code + " additional info: " + reason);		    	
+		    	client = null;
+		    }
+		    @Override 
+		    public void onMessage(String json){
+		    	BlockyTalkyMessage message = new BlockyTalkyMessage(json);
+	            receivedMessage = message.content;
+	            receivedMessageFrom = message.source;
+	            Log.d(LOG_TAG, "*****received message: " + message.toJson());
+	            handler.post(new Runnable() {
+	                public void run() {
+	                    OnMessageReceived();
+	                }
+         		 });
+		    }
+		    @Override
+		    public void onError(Exception ex){
+		    	Log.d(LOG_TAG,"an IO Error occured: " + ex);
+		    }
+		}
+		private void connectToMessagingRouter(){
+        try {
+          Log.d(LOG_TAG, "Opening connection to BlockyTalky messaging router");
+          client = new EmptyClient(this.nodeName, new URI(blockyTalkyMessageRouter), new Draft_10(), headers, 10000);
+          client.connect();
+        } catch (Exception e) {
+          Log.d(LOG_TAG, "Exception Caught while trying to connect to messasge router: " + e);
+        }
+    }
 }
