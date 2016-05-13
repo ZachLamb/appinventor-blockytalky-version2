@@ -98,6 +98,14 @@ public class BlockyTalky extends AndroidNonvisibleComponent implements  Componen
 	/* Used to identify the call to startActivityForResult. Will be passed back
 	into the resultReturned() callback method. */
 
+	private String returnedMessage = "";
+	private String returnedMessageFrom = "";
+	private HashMap<String, String > headers;
+
+	private final Handler androidUIHandler;
+	private Handler handler;
+	private final String blockyTalkyMessageRouter = "ws://btrouter.getdown.org:8005/dax";
+
 
 	// sendMessage();
 	//blockyTalky Component
@@ -106,6 +114,11 @@ public class BlockyTalky extends AndroidNonvisibleComponent implements  Componen
 	{
 		super(container.$form());
 		this.container = container;
+		androidUIHandler = new Handler();
+		handler = new Handler();
+		headers = new HashMap<String, String>(){{
+            put("Sec-WebSocket-Protocol","echo-protocol");
+        }};
 			// property 
 	}
 		@DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_STRING,
@@ -140,6 +153,16 @@ public class BlockyTalky extends AndroidNonvisibleComponent implements  Componen
 		    }
 
 		}
+		//OnMessageReturned used in OnMessage
+		@SimpleEvent(description = "Message was returned from WebSocket.")
+	    public void OnMessageReturned() {
+	        Log.d(LOG_TAG, "inside BlockyTalky.OnMessageReturned");
+	        androidUIHandler.post(new Runnable(){
+	            public void run(){
+	                EventDispatcher.dispatchEvent(BlockyTalky.this, "OnMessageReturned");
+	            }
+	        });
+	    }
 
 		// return nearby BlockyTalky's
 		// @SimpleProperty(description = "Will return BlockyTalkys nearby.")
@@ -237,12 +260,12 @@ public class BlockyTalky extends AndroidNonvisibleComponent implements  Componen
 		    @Override 
 		    public void onMessage(String json){
 		    	BlockyTalkyMessage message = new BlockyTalkyMessage(json);
-	            receivedMessage = message.content;
-	            receivedMessageFrom = message.source;
-	            Log.d(LOG_TAG, "*****received message: " + message.toJson());
+	            returnedMessage = message.content;
+	            returnedMessageFrom = message.source;
+	            Log.d(LOG_TAG, "*****received message: " + returnedMessage + " From: "+ returnedMessageFrom);
 	            handler.post(new Runnable() {
 	                public void run() {
-	                    OnMessageReceived();
+	                    OnMessageReturned();
 	                }
          		 });
 		    }
@@ -254,7 +277,7 @@ public class BlockyTalky extends AndroidNonvisibleComponent implements  Componen
 		private void connectToMessagingRouter(){
         try {
           Log.d(LOG_TAG, "Opening connection to BlockyTalky messaging router");
-          client = new EmptyClient(this.nodeName, new URI(blockyTalkyMessageRouter), new Draft_10(), headers, 10000);
+          client = new NewClient(this.nodeName, new URI(blockyTalkyMessageRouter), new Draft_10(), headers, 10000);
           client.connect();
         } catch (Exception e) {
           Log.d(LOG_TAG, "Exception Caught while trying to connect to messasge router: " + e);
