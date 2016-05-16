@@ -1,6 +1,5 @@
 // -*- mode: java; c-basic-offset: 2; -*-
-// Copyright 2009-2011 Google, All Rights reserved
-// Copyright 2011-2012 MIT, All rights reserved
+// Copyright 2015 MIT, All rights reserved
 // Released under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 
@@ -145,7 +144,7 @@ public class ExternalComponentPackaging {
   private static void copyRelatedExternalClasses(final File srcfolder, String externalComponentName, final String destPath) throws IOException {
     for (File fileEntry : srcfolder.listFiles()){
       if (fileEntry.isFile()) {
-        if (fileEntry.getName().contains(externalComponentName)){
+        if (fileEntry.getName().startsWith(externalComponentName)){
           System.out.println(fileEntry.toString());
           copyFile(fileEntry,new File (destPath+File.separator+fileEntry.getName()));
         }
